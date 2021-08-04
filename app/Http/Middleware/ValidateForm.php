@@ -31,7 +31,7 @@ class ValidateForm
 		Log::info('ValidateForm middleware');
 		$data = $request->all();
 		$this->data = $data;;
-		
+		//disable when testing
 		$this->validateName($data['name']); 
 		$this->validateName($data['surname']);
 		$this->validatePhone($data['phone']);

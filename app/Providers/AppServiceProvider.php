@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Providers;
-
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,6 +22,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+		
+		//One way globals
+        //Config::set(['apiCllient' => $apiClient]); 
+		//Config::get('apiClient');
+		
+		
     }
+	
 }
+

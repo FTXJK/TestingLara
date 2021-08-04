@@ -10,11 +10,10 @@ use View;
 
 use AmoCRM\Client\AmoCRMApiClient;
 use AmoCRM\Exceptions\AmoCRMApiException;
-use League\OAuth2\Client\Token\AccessToken;
+//use League\OAuth2\Client\Token\AccessToken;
 //use League\OAuth2\Client\Token\AccessTokenInterface; 
 use Illuminate\Support\Facades\Storage;
 define('FORM_FILE', 'tmp' . DIRECTORY_SEPARATOR . 'FormData.json');
-define('TOKEN_FILE', 'tmp' . DIRECTORY_SEPARATOR . 'token_info.json');
 
 use AmoCRM\Models\ContactModel;
 use AmoCRM\Models\LeadModel;
@@ -90,7 +89,7 @@ class ContactController extends Controller
 		Log::info("Contact Controller and also data " . $data['name']);	
 		//return redirect()->route('profile'); //for testing
 		
-	    $apiClient  = $this->getApiClient();
+	    $apiClient  = $this->apiClient;
 	    $accessToken = $this->getToken();
          
 		$apiClient->setAccessToken($accessToken)
@@ -214,7 +213,7 @@ class ContactController extends Controller
 			}
 			
 			//GET RANDOM USER 	 
-			Log::info("USERS COLLECTION IS " . var_dump($usersCollection));
+			//Log::info("USERS COLLECTION IS " . var_dump($usersCollection));
 			$usersCollection = $usersCollection->toArray();
 			$randomUser = $usersCollection[rand(0, count($usersCollection) - 1)]; 
 			//$str = join(',', $randomUser);  //////////////////////////////////////////////////////////////
@@ -348,71 +347,7 @@ class ContactController extends Controller
 	    return $this->returnView($data);
     	//return redirect()->route('profile');
 	}
-	
-	public function getApiClient() 
-	{
-      $clientId = '';
-	  $clientSecret = '';
-	  $redirectUrl = '';
-	  
-	  $apiClient = new AmoCRMApiClient($clientId, $clientSecret, $redirectUrl);
-	  return $apiClient;
-	}
-	
-	function getToken()
-	{
-	    if(!Storage::disk('local')->exists(TOKEN_FILE)) {
-			exit('Access token file not found');
-		}
-	
-		//$accessToken = json_decode(file_get_contents(TOKEN_FILE), true);
-        $accessToken = json_decode(Storage::get(TOKEN_FILE), true);//reutrn array
 
-		if (
-			isset($accessToken)
-			&& isset($accessToken['accessToken'])
-			&& isset($accessToken['refreshToken'])
-			&& isset($accessToken['expires'])
-			&& isset($accessToken['baseDomain'])
-		) {
-			return new AccessToken([
-				'access_token' => $accessToken['accessToken'],
-				'refresh_token' => $accessToken['refreshToken'],
-				'expires' => $accessToken['expires'],
-				'baseDomain' => $accessToken['baseDomain'],
-			]);
-		} else {
-			exit('Invalid access token ' . var_export($accessToken, true));
-		}
-	}
-	
-	function saveToken($accessToken)
-	{
-		if (
-			isset($accessToken)
-			&& isset($accessToken['accessToken'])
-			&& isset($accessToken['refreshToken'])
-			&& isset($accessToken['expires'])
-			&& isset($accessToken['baseDomain'])
-		) {
-			$data = [
-				'accessToken' => $accessToken['accessToken'],
-				'expires' => $accessToken['expires'],
-				'refreshToken' => $accessToken['refreshToken'],
-				'baseDomain' => $accessToken['baseDomain'],
-			];
-
-			//file_put_contents(TOKEN_FILE, json_encode($data));                    
-			if (Storage::disk('local')->exists(TOKEN_FILE)) {
-		        Storage::put(TOKEN_FILE, json_encode($data)); //rewrites
-		    } else {
-		       Storage::put(TOKEN_FILE, json_encode($data));
-	    	}		
-		} else {
-			exit('Invalid access token ' . var_export($accessToken, true));
-		}
-	}
-	
 	public function returnView($data) 
 	{
 	   	$view =  View::make('profile')->with('namePr',  $data['name'])  

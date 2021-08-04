@@ -8,19 +8,15 @@ use Log;
 
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-define('TOKEN_FILE', 'tmp' . DIRECTORY_SEPARATOR . 'token_info.json');
 define('STATE_FILE', 'tmp' . DIRECTORY_SEPARATOR . 'StateData.json');
 
 use AmoCRM\Client\AmoCRMApiClient;
 
 class TokenController extends Controller
 {
-	public $apiClient;
-	
     public function processToken(Request $request)
 	{
-		Log::info("This is token controller'");
-			
+		Log::info("This is token controller'");		
 		//not needed probably, session_status differs anyway
 		/*
 		if (session_status()  !== PHP_SESSION_ACTIVE) { 
@@ -29,7 +25,7 @@ class TokenController extends Controller
 		$sessionState = Session::get('oauth2state'); //$_SESSION['oauth2state']
 		
 		if (isset($_GET['state'])) {
-			Log::info("tHIS IS GET SATE" .  $_GET['state'])
+			Log::info("tHIS IS GET SATE" .  $_GET['state']);
 		}
 		Log::info("session is " . Session::get('oauth2state')); //session()->get('oauth2state')
 
@@ -38,10 +34,7 @@ class TokenController extends Controller
             if (empty(Session::get('oauth2state')))   $sessionState =  json_decode(Storage::get(STATE_FILE));
 		    //Log::info("State is in STATE FILE reading " . $sessionState);	
 		} 
-				
-	    
-	   	$this->apiClient = $this->getApiClient();
-				
+					
 		if (isset($_GET['referer'])) {
 			$this->apiClient->setAccountBaseDomain($_GET['referer']);
 		}
@@ -83,7 +76,6 @@ class TokenController extends Controller
 					'state' => $state,
 					'mode' => 'post_message',
 				]);
-				///REQUEST()->SESSION() 
 				Log::info("THIS IS OAUTH2 STATE before redirect" .  Session::get('oauth2state'));//session()->get('oauth2state'));//
 				return redirect()->away($authorizationUrl)->with('oauth2state', $state);
 				/*
@@ -99,7 +91,7 @@ class TokenController extends Controller
 		}
 		
 		Log::info("Got code from Amo ");
-		//GETTING AND SAVING TOKEN IN EXCHANGE FOR code
+		//GETTING TOKEN BY Code and SAVING IT
 		try {
 			$accessToken = $this->apiClient->getOAuthClient()->getAccessTokenByCode($_GET['code']);
 
@@ -120,43 +112,6 @@ class TokenController extends Controller
 		Log::info("got token from redirect with owner name " . $ownerDetails->getName() );	
 		
 		return redirect()->route('contact');   //redirect to ContactController!!!!
-	}
-	
-    public function getApiClient() 
-	{
-        $clientId = '';
-	    $clientSecret = '';
-	    $redirectUrl = ''
-	  
-	    $apiClient = new AmoCRMApiClient($clientId, $clientSecret, $redirectUrl);
-	    return $apiClient;
-	}
-	
-	function saveToken($accessToken)
-	{
-	    if (
-		    isset($accessToken)
-			&& isset($accessToken['accessToken'])
-			&& isset($accessToken['refreshToken'])
-			&& isset($accessToken['expires'])
-			&& isset($accessToken['baseDomain'])
-		) {
-			$data = [
-				'accessToken' => $accessToken['accessToken'],
-				'expires' => $accessToken['expires'],
-				'refreshToken' => $accessToken['refreshToken'],
-				'baseDomain' => $accessToken['baseDomain'],
-			];
-
-			//file_put_contents(TOKEN_FILE, json_encode($data));                 
-			if (Storage::disk('local')->exists(TOKEN_FILE)) {
-				  Storage::put(TOKEN_FILE, json_encode($data)); //Should we even update? //rewrites fine
-				} else {
-				  Storage::put(TOKEN_FILE, json_encode($data)); //creates also
-				}		
-		} else {
-			exit('Invalid access token ' . var_export($accessToken, true));
-		}
 	}
 
 }

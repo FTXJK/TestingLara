@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;//hmm
-include_once __DIR__ .  ' /../Bootstrap.php';
 use Log;
 use View;
 
